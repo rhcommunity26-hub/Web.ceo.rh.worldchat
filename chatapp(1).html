@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatWorld</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00C896;--gd:#00a87d;
+  --bg:#0f1117;--s1:#1a1d27;--s2:#22263a;--s3:#2c3148;
+  --tx:#f0f2ff;--tx2:#9ba4c0;--tx3:#6b7491;
+  --acc:#6c5ce7;--red:#ff4757;
+  --br:rgba(255,255,255,0.07);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ===================== INTRO SLIDES ===================== */
+#intro{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;overflow:hidden}
+.slides-wrap{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);height:100%}
+.slide{min-width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 28px;text-align:center;position:relative}
+.slide-1{background:radial-gradient(ellipse at 30% 40%,#00c89630,transparent 60%),radial-gradient(ellipse at 70% 70%,#6c5ce730,transparent 60%),var(--bg)}
+.slide-2{background:radial-gradient(ellipse at 60% 30%,#0984e330,transparent 60%),radial-gradient(ellipse at 30% 70%,#00c89620,transparent 60%),var(--bg)}
+.slide-3{background:radial-gradient(ellipse at 40% 60%,#fd79a830,transparent 60%),radial-gradient(ellipse at 70% 30%,#6c5ce730,transparent 60%),var(--bg)}
+.slide-4{background:radial-gradient(ellipse at 50% 50%,#00c89625,transparent 60%),var(--bg)}
+
+.slide-icon{font-size:4.5rem;margin-bottom:24px;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.slide-badge{font-size:.72rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px}
+.slide-title{font-size:2rem;font-weight:800;line-height:1.2;margin-bottom:14px}
+.slide-title span{background:linear-gradient(90deg,var(--green),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.slide-desc{font-size:.95rem;color:var(--tx2);line-height:1.7;max-width:320px}
+
+.slide-features{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0;width:100%;max-width:340px}
+.sf{background:rgba(255,255,255,.05);border:1px solid var(--br);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;text-align:left}
+.sf-icon{font-size:1.3rem;flex-shrink:0}
+.sf-text{font-size:.8rem;color:var(--tx2);font-weight:500}
+
+/* Dots & nav */
+.intro-dots{display:flex;gap:8px;margin-top:28px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--tx3);transition:all .3s;cursor:pointer}
+.dot.act{width:24px;border-radius:4px;background:var(--green)}
+.intro-nav{display:flex;gap:12px;margin-top:16px;width:100%;max-width:340px}
+.btn-skip{flex:1;background:var(--s1);border:1px solid var(--br);border-radius:50px;padding:13px;color:var(--tx2);font-family:inherit;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s}
+.btn-skip:hover{background:var(--s2)}
+.btn-next{flex:2;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:50px;padding:13px;color:#fff;font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 8px 24px #00c89640}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 12px 30px #00c89650}
+.btn-mulai{width:100%;max-width:340px;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:50px;padding:15px;color:#fff;font-family:inherit;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px #00c89640;transition:all .2s;margin-top:8px}
+.btn-mulai:hover{transform:translateY(-2px);box-shadow:0 14px 32px #00c89650}
+
+/* ===================== AUTH SCREEN ===================== */
+#auth{position:fixed;inset:0;z-index:998;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;background:var(--bg);overflow-y:auto}
+#auth.show{display:flex}
+
+/* Step indicator */
+.steps-bar{display:flex;align-items:center;gap:0;margin-bottom:28px;width:100%;max-width:340px}
+.step-item{display:flex;align-items:center;gap:0;flex:1}
+.step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;transition:all .3s}
+.step-circle.done{background:var(--green);color:#fff}
+.step-circle.active{background:var(--green);color:#fff;box-shadow:0 0 0 4px #00c89630}
+.step-circle.pending{background:var(--s2);color:var(--tx3);border:1px solid var(--br)}
+.step-line{flex:1;height:2px;background:var(--s2);transition:background .3s}
+.step-line.done{background:var(--green)}
+.step-label{font-size:.65rem;color:var(--tx3);margin-top:4px;text-align:center;white-space:nowrap}
+
+/* Auth card */
+.auth-logo{font-size:2rem;margin-bottom:4px}
+.auth-title{font-size:1.6rem;font-weight:800;margin-bottom:4px}
+.auth-title span{background:linear-gradient(90deg,var(--green),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.auth-sub{font-size:.85rem;color:var(--tx3);margin-bottom:24px}
+
+/* Method cards */
+.method-cards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px}
+.method-card{background:var(--s1);border:1.5px solid var(--br);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;text-align:left}
+.method-card:hover{border-color:var(--green);background:var(--s2);transform:translateY(-1px)}
+.method-card.selected{border-color:var(--green);background:rgba(0,200,150,.08)}
+.mc-icon{font-size:1.6rem;flex-shrink:0}
+.mc-info{flex:1}
+.mc-name{font-weight:700;font-size:.92rem}
+.mc-desc{font-size:.76rem;color:var(--tx3);margin-top:2px}
+.mc-arrow{color:var(--tx3);font-size:.9rem}
+
+/* Form fields */
+.auth-form{width:100%;max-width:340px}
+.field-lbl{font-size:.72rem;font-weight:700;color:var(--tx3);letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase}
+.field{background:var(--s1);border:1.5px solid var(--br);border-radius:12px;display:flex;align-items:center;gap:8px;padding:12px 14px;margin-bottom:14px;transition:border .2s}
+.field:focus-within{border-color:var(--green)}
+.field input{background:transparent;border:none;outline:none;color:var(--tx);font-family:inherit;font-size:.92rem;flex:1}
+.field input::placeholder{color:var(--tx3)}
+.flag-pick{background:transparent;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;flex-shrink:0;color:var(--tx)}
+.flag-pick .fc{color:var(--green);font-weight:700;font-size:.88rem}
+.flag-pick .fa{color:var(--tx3);font-size:.7rem}
+.fdiv{width:1px;height:18px;background:var(--br);flex-shrink:0}
+
+.btn-auth{width:100%;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:12px;padding:13px;color:#fff;font-family:inherit;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.btn-auth:hover{opacity:.9;transform:translateY(-1px)}
+.btn-google{width:100%;background:#fff;border:none;border-radius:12px;padding:12px;color:#333;font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 16px rgba(0,0,0,.25);transition:all .2s}
+.btn-google:hover{transform:translateY(-1px);box-shadow:0 4px 24px rgba(0,0,0,.35)}
+.or-div{display:flex;align-items:center;gap:10px;margin:12px 0}
+.or-div div{flex:1;height:1px;background:var(--br)}
+.or-div span{font-size:.75rem;color:var(--tx3)}
+.back-auth{background:transparent;border:none;color:var(--tx3);font-family:inherit;font-size:.83rem;cursor:pointer;margin-top:6px;padding:6px;width:100%}
+.back-auth:hover{color:var(--tx)}
+.terms-auth{font-size:.72rem;color:var(--tx3);text-align:center;margin-top:14px;line-height:1.6;max-width:300px}
+.terms-auth a{color:var(--green);text-decoration:none}
+.report-auth{background:transparent;border:none;color:var(--tx3);font-family:inherit;font-size:.72rem;cursor:pointer;text-decoration:underline;margin-top:8px}
+
+/* OTP box */
+.otp-wrap{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.otp-box{width:48px;height:56px;background:var(--s1);border:1.5px solid var(--br);border-radius:12px;text-align:center;font-size:1.4rem;font-weight:700;color:var(--tx);font-family:inherit;outline:none;transition:border .2s}
+.otp-box:focus{border-color:var(--green)}
+
+/* ===================== APP ===================== */
+#app{display:none;flex-direction:column;height:100vh}
+#app.show{display:flex}
+.topbar{background:var(--s1);border-bottom:1px solid var(--br);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-logo{font-weight:800;font-size:1.1rem}
+.tb-logo b{color:var(--green)}
+.tb-beta{font-size:.68rem;color:var(--tx3);background:var(--s2);padding:2px 8px;border-radius:50px}
+.tb-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.ib{background:var(--s2);border:1px solid var(--br);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .2s;color:var(--tx2);border:none}
+.ib:hover{background:var(--green);color:#fff}
+.av-btn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--acc));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;cursor:pointer;border:none;color:#fff;flex-shrink:0;overflow:hidden}
+
+.main{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:300px;background:var(--s1);border-right:1px solid var(--br);display:flex;flex-direction:column;flex-shrink:0;transition:transform .3s}
+.sb-head{padding:12px 14px;display:flex;align-items:center;border-bottom:1px solid var(--br)}
+.sb-head h2{font-size:.9rem;font-weight:700}
+.new-btn{margin-left:auto;background:var(--green);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:#fff;font-size:1.2rem;display:flex;align-items:center;justify-content:center;line-height:1}
+.new-btn:hover{background:var(--gd)}
+.sb-search{margin:8px 12px;background:var(--s2);border:1px solid var(--br);border-radius:50px;display:flex;align-items:center;gap:8px;padding:7px 13px}
+.sb-search input{background:transparent;border:none;outline:none;color:var(--tx);font-family:inherit;font-size:.83rem;flex:1}
+.sb-search input::placeholder{color:var(--tx3)}
+.clist{flex:1;overflow-y:auto}
+.clist::-webkit-scrollbar{width:3px}
+.clist::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
+.ci{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--br)}
+.ci:hover{background:var(--s2)}
+.ci.act{background:var(--s3)}
+.cav{width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.95rem;position:relative;overflow:hidden}
+.odot{width:10px;height:10px;background:var(--green);border:2px solid var(--s1);border-radius:50%;position:absolute;bottom:0;right:0}
+.cinf{flex:1;min-width:0}
+.cname{font-weight:600;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cprev{font-size:.74rem;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.cmeta{text-align:right;flex-shrink:0}
+.ctime{font-size:.66rem;color:var(--tx3)}
+.cbadge{background:var(--green);color:#fff;font-size:.6rem;font-weight:700;border-radius:50px;padding:2px 6px;margin-top:3px;display:inline-block}
+
+/* Chat */
+.chat-area{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);background-image:radial-gradient(circle at 1px 1px,#ffffff06 1px,transparent 0);background-size:22px 22px}
+.chat-head{background:var(--s1);border-bottom:1px solid var(--br);padding:10px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.back-btn{display:none;background:transparent;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer;padding:4px}
+.ch-info{flex:1;min-width:0}
+.ch-name{font-weight:700;font-size:.92rem}
+.ch-stat{font-size:.72rem;color:var(--green)}
+.ch-acts{display:flex;gap:5px}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px}
+.msgs::-webkit-scrollbar{width:3px}
+.msgs::-webkit-scrollbar-thumb{background:var(--s2);border-radius:3px}
+
+/* Bubbles */
+.bw{max-width:72%;display:flex;flex-direction:column;animation:pop .2s ease}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.bw.me{align-self:flex-end;align-items:flex-end}
+.bw.them{align-self:flex-start;align-items:flex-start}
+.b{padding:9px 13px;border-radius:16px;font-size:.86rem;line-height:1.5;word-break:break-word}
+.bw.me .b{background:linear-gradient(135deg,var(--green),var(--gd));color:#fff;border-bottom-right-radius:3px}
+.bw.them .b{background:var(--s1);border:1px solid var(--br);border-bottom-left-radius:3px}
+.bt{font-size:.62rem;color:var(--tx3);margin-top:3px}
+.bimg{max-width:230px;border-radius:11px;overflow:hidden;cursor:pointer}
+.bimg img{width:100%;display:block}
+.bloc{background:var(--s2);border:1px solid var(--br);border-radius:11px;padding:9px;min-width:180px;cursor:pointer}
+.lmap{height:65px;background:linear-gradient(135deg,#1a1d27,#2c3148);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:5px}
+.ltit{font-size:.78rem;font-weight:700}
+.ladr{font-size:.68rem;color:var(--tx3)}
+.bvoice{display:flex;align-items:center;gap:9px;min-width:160px}
+.pbtn{width:32px;height:32px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:#fff;font-size:.82rem;flex-shrink:0}
+.wv{flex:1;display:flex;align-items:center;gap:2px;height:24px}
+.wb{flex:1;background:var(--green);border-radius:2px;opacity:.6;animation:wva 1s ease-in-out infinite}
+@keyframes wva{0%,100%{opacity:.25}50%{opacity:.85}}
+
+/* Input */
+.input-bar{background:var(--s1);border-top:1px solid var(--br);padding:9px 12px;display:flex;align-items:flex-end;gap:7px;flex-shrink:0;position:relative}
+.itools{display:flex;gap:1px;align-items:center}
+.itb{background:transparent;border:none;cursor:pointer;color:var(--tx2);font-size:1.1rem;padding:6px;border-radius:8px;transition:color .2s}
+.itb:hover{color:var(--green)}
+.ibox{flex:1;background:var(--s2);border:1px solid var(--br);border-radius:20px;display:flex;align-items:flex-end;padding:7px 13px;gap:7px}
+.mta{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:inherit;font-size:.87rem;resize:none;max-height:100px;line-height:1.5}
+.mta::placeholder{color:var(--tx3)}
+.sbtn{width:38px;height:38px;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;transition:transform .15s}
+.sbtn:hover{transform:scale(1.08)}
+.emj-panel{position:absolute;bottom:62px;left:12px;background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:10px;display:none;flex-wrap:wrap;gap:3px;max-width:240px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.emj-panel.open{display:flex}
+.ep{font-size:1.2rem;cursor:pointer;padding:4px;border-radius:6px;transition:background .1s}
+.ep:hover{background:var(--s2)}
+
+/* Empty */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--tx3);text-align:center;padding:24px}
+.empty-ic{font-size:2.8rem;margin-bottom:10px}
+.empty p{font-size:.83rem;line-height:1.6;max-width:230px}
+
+/* Overlays */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center}
+.ov.open{display:flex}
+
+/* Video call */
+.vcbox{background:var(--s1);border-radius:22px;width:440px;max-width:95vw;border:1px solid var(--br);overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.vcvid{height:270px;background:linear-gradient(135deg,#0f1117,#1a1d27);position:relative;display:flex;align-items:center;justify-content:center}
+.vcav{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.1rem;position:relative}
+.vcp{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--green);opacity:.4;animation:pls 1.5s ease-in-out infinite}
+@keyframes pls{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.1);opacity:.1}}
+.vcself{position:absolute;bottom:10px;right:10px;width:78px;height:62px;border-radius:10px;background:var(--s2);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.vcinfo{padding:16px;text-align:center}
+.vcname{font-weight:700;font-size:1.05rem}
+.vcstat{color:var(--tx2);font-size:.8rem;margin-top:2px}
+.vcbtns{display:flex;justify-content:center;gap:12px;padding:0 16px 16px}
+.vcb{width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.05rem;transition:transform .15s}
+.vcb:hover{transform:scale(1.1)}
+.vcb.m,.vcb.c{background:var(--s2);color:var(--tx)}
+.vcb.e{background:var(--red);color:#fff}
+
+/* Country modal */
+.ctrbox{background:var(--s1);border-radius:22px;width:390px;max-width:95vw;max-height:82vh;border:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.ctrhead{padding:13px 16px;border-bottom:1px solid var(--br);display:flex;align-items:center}
+.ctrhead h3{font-size:.92rem;font-weight:700;flex:1}
+.ctrhead button{background:transparent;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer}
+.ctrsearch{padding:9px 16px}
+.ctrsearch input{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:50px;padding:8px 13px;color:var(--tx);font-family:inherit;font-size:.83rem;outline:none}
+.ctrlist{overflow-y:auto;flex:1}
+.ctrlist::-webkit-scrollbar{width:3px}
+.ctrlist::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
+.ctr{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--br)}
+.ctr:hover{background:var(--s2)}
+.cf{font-size:1.25rem}
+.cn{flex:1;font-size:.84rem}
+.cc{color:var(--green);font-size:.82rem;font-weight:700}
+
+/* New chat modal */
+.ncbox{background:var(--s1);border-radius:20px;width:350px;max-width:95vw;border:1px solid var(--br);padding:20px;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.ncbox h3{font-size:.95rem;font-weight:700;margin-bottom:14px}
+.nc-lbl{font-size:.7rem;color:var(--tx3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.nc-field{background:var(--s2);border:1px solid var(--br);border-radius:10px;display:flex;align-items:center;gap:8px;padding:9px 12px;margin-bottom:10px;transition:border .2s}
+.nc-field:focus-within{border-color:var(--green)}
+.nc-field input{background:transparent;border:none;outline:none;color:var(--tx);font-family:inherit;font-size:.86rem;flex:1}
+.nc-field input::placeholder{color:var(--tx3)}
+.nc-fbtn{background:transparent;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--tx);font-size:.86rem;padding:0;flex-shrink:0}
+.nc-div{width:1px;height:16px;background:var(--br);flex-shrink:0}
+.nc-ok{width:100%;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:10px;padding:11px;color:#fff;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:4px}
+.nc-cancel{width:100%;background:transparent;border:none;color:var(--tx3);font-family:inherit;font-size:.82rem;padding:8px;cursor:pointer;margin-top:4px}
+
+/* Settings */
+.setbox{background:var(--s1);border-radius:22px;width:430px;max-width:96vw;max-height:88vh;border:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.sethead{padding:14px 18px;border-bottom:1px solid var(--br);display:flex;align-items:center;flex-shrink:0}
+.sethead h3{font-size:.95rem;font-weight:700;flex:1}
+.sethead button{background:transparent;border:none;color:var(--tx2);font-size:1.1rem;cursor:pointer}
+.stabs{display:flex;gap:4px;padding:9px 12px;border-bottom:1px solid var(--br);overflow-x:auto;flex-shrink:0}
+.stab{background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:.76rem;font-weight:600;color:var(--tx3);padding:6px 10px;border-radius:8px;white-space:nowrap;transition:all .2s}
+.stab.act{background:var(--green);color:#fff}
+.stab:hover:not(.act){color:var(--tx);background:var(--s2)}
+.setcontent{flex:1;overflow-y:auto;padding:14px 16px}
+.setcontent::-webkit-scrollbar{width:3px}
+.setcontent::-webkit-scrollbar-thumb{background:var(--s3);border-radius:3px}
+.ssec{font-size:.68rem;font-weight:700;color:var(--tx3);letter-spacing:1.5px;margin:16px 0 7px;text-transform:uppercase}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--br)}
+.srow:last-child{border-bottom:none}
+.slbl{font-size:.86rem;font-weight:600}
+.ssub{font-size:.73rem;color:var(--tx3);margin-top:2px}
+.stog{width:42px;height:22px;background:var(--s3);border-radius:50px;cursor:pointer;position:relative;border:none;transition:background .2s;flex-shrink:0}
+.stog.on{background:var(--green)}
+.stog::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
+.stog.on::after{left:23px}
+.ssel{background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:6px 10px;color:var(--tx);font-family:inherit;font-size:.82rem;outline:none;cursor:pointer}
+.sbtn2{background:var(--s2);border:1px solid var(--br);border-radius:8px;padding:7px 12px;color:var(--tx);font-family:inherit;font-size:.8rem;cursor:pointer;transition:all .2s}
+.sbtn2:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.sbtn2.red{background:rgba(255,71,87,.1);border-color:var(--red);color:var(--red)}
+.sbtn2.red:hover{background:var(--red);color:#fff}
+.sinput{background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:9px 12px;color:var(--tx);font-family:inherit;font-size:.86rem;outline:none;width:100%;margin-top:5px;transition:border .2s}
+.sinput:focus{border-color:var(--green)}
+.stextarea{background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:9px 12px;color:var(--tx);font-family:inherit;font-size:.86rem;outline:none;width:100%;margin-top:5px;resize:none;min-height:75px;transition:border .2s}
+.stextarea:focus{border-color:var(--green)}
+.cdot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.cdot.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.4)}
+.covopt{height:50px;border-radius:10px;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:all .15s}
+.covopt.sel{border-color:var(--green);box-shadow:0 0 0 2px #00c89640}
+
+/* Profile card */
+.profbox{background:var(--s1);border-radius:22px;width:340px;max-width:96vw;border:1px solid var(--br);overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.prof-cover{height:90px;position:relative}
+.prof-cover button{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.4);border:none;color:#fff;font-size:.95rem;cursor:pointer;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.prof-body{padding:0 18px 18px;margin-top:-34px}
+.prof-av{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:700;border:3px solid var(--s1);margin-bottom:9px;overflow:hidden}
+
+/* Lightbox */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:300;display:none;align-items:center;justify-content:center;cursor:pointer}
+.lb.open{display:flex}
+.lb img{max-width:90vw;max-height:90vh;border-radius:12px}
+
+/* Snack */
+.snk{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--s1);border:1px solid var(--br);padding:8px 18px;border-radius:50px;font-size:.81rem;color:var(--tx2);z-index:500;display:none;white-space:nowrap;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+
+@media(max-width:640px){
+  .sidebar{width:100%;position:absolute;z-index:10;height:100%}
+  .sidebar.hidden{transform:translateX(-100%)}
+  .back-btn{display:flex !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== INTRO SLIDES ===================== -->
+<div id="intro">
+  <div class="slides-wrap" id="slidesWrap">
+
+    <!-- Slide 1: Welcome -->
+    <div class="slide slide-1">
+      <div class="slide-icon">🌐</div>
+      <p class="slide-badge">Selamat Datang</p>
+      <h1 class="slide-title">Chat<span>World</span></h1>
+      <p class="slide-desc">Aplikasi pesan & video call yang menghubungkan kamu dengan siapa saja di seluruh dunia.</p>
+      <div class="intro-dots" id="dots1">
+        <div class="dot act" onclick="goSlide(0)"></div>
+        <div class="dot" onclick="goSlide(1)"></div>
+        <div class="dot" onclick="goSlide(2)"></div>
+        <div class="dot" onclick="goSlide(3)"></div>
+      </div>
+      <div class="intro-nav">
+        <button class="btn-skip" onclick="skipIntro()">Lewati</button>
+        <button class="btn-next" onclick="goSlide(1)">Selanjutnya →</button>
+      </div>
+    </div>
+
+    <!-- Slide 2: Features -->
+    <div class="slide slide-2">
+      <div class="slide-icon">💬</div>
+      <p class="slide-badge">Fitur Lengkap</p>
+      <h1 class="slide-title">Semua yang <span>Kamu Butuhkan</span></h1>
+      <div class="slide-features">
+        <div class="sf"><span class="sf-icon">📹</span><span class="sf-text">Video Call HD</span></div>
+        <div class="sf"><span class="sf-icon">🎙️</span><span class="sf-text">Pesan Suara</span></div>
+        <div class="sf"><span class="sf-icon">📍</span><span class="sf-text">Kirim Lokasi</span></div>
+        <div class="sf"><span class="sf-icon">🖼️</span><span class="sf-text">Foto & Media</span></div>
+        <div class="sf"><span class="sf-icon">🔒</span><span class="sf-text">Enkripsi E2E</span></div>
+        <div class="sf"><span class="sf-icon">🌍</span><span class="sf-text">50+ Negara</span></div>
+      </div>
+      <div class="intro-dots">
+        <div class="dot" onclick="goSlide(0)"></div>
+        <div class="dot act" onclick="goSlide(1)"></div>
+        <div class="dot" onclick="goSlide(2)"></div>
+        <div class="dot" onclick="goSlide(3)"></div>
+      </div>
+      <div class="intro-nav">
+        <button class="btn-skip" onclick="goSlide(0)">← Kembali</button>
+        <button class="btn-next" onclick="goSlide(2)">Selanjutnya →</button>
+      </div>
+    </div>
+
+    <!-- Slide 3: Privacy -->
+    <div class="slide slide-3">
+      <div class="slide-icon">🔐</div>
+      <p class="slide-badge">Privasi & Keamanan</p>
+      <h1 class="slide-title">Pesan Kamu <span>Aman Selalu</span></h1>
+      <p class="slide-desc">Semua pesan dienkripsi end-to-end. Hanya kamu dan penerimanya yang bisa membaca.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:20px 0;width:100%;max-width:320px">
+        <div class="sf"><span class="sf-icon">🔐</span><div><div style="font-size:.84rem;font-weight:700">End-to-End Encrypted</div><div style="font-size:.74rem;color:var(--tx3)">Pesan tidak bisa dibaca orang lain</div></div></div>
+        <div class="sf"><span class="sf-icon">🚫</span><div><div style="font-size:.84rem;font-weight:700">Tanpa Iklan</div><div style="font-size:.74rem;color:var(--tx3)">Tidak ada iklan, tidak ada tracking</div></div></div>
+        <div class="sf"><span class="sf-icon">🗑️</span><div><div style="font-size:.84rem;font-weight:700">Pesan Bisa Dihapus</div><div style="font-size:.74rem;color:var(--tx3)">Hapus pesan kapan saja</div></div></div>
+      </div>
+      <div class="intro-dots">
+        <div class="dot" onclick="goSlide(0)"></div>
+        <div class="dot" onclick="goSlide(1)"></div>
+        <div class="dot act" onclick="goSlide(2)"></div>
+        <div class="dot" onclick="goSlide(3)"></div>
+      </div>
+      <div class="intro-nav">
+        <button class="btn-skip" onclick="goSlide(1)">← Kembali</button>
+        <button class="btn-next" onclick="goSlide(3)">Selanjutnya →</button>
+      </div>
+    </div>
+
+    <!-- Slide 4: Get Started -->
+    <div class="slide slide-4">
+      <div class="slide-icon" style="animation-delay:.2s">🚀</div>
+      <p class="slide-badge">Mulai Sekarang</p>
+      <h1 class="slide-title">Siap untuk <span>Terhubung?</span></h1>
+      <p class="slide-desc">Daftar gratis dalam hitungan detik. Gunakan nomor telepon atau akun Google kamu.</p>
+      <div class="intro-dots" style="margin-top:20px">
+        <div class="dot" onclick="goSlide(0)"></div>
+        <div class="dot" onclick="goSlide(1)"></div>
+        <div class="dot" onclick="goSlide(2)"></div>
+        <div class="dot act" onclick="goSlide(3)"></div>
+      </div>
+      <button class="btn-mulai" onclick="skipIntro()">🌐 Mulai Sekarang</button>
+      <button class="btn-skip" style="max-width:340px;width:100%;margin-top:8px" onclick="goSlide(2)">← Kembali</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== AUTH SCREEN ===================== -->
+<div id="auth">
+
+  <!-- Step bar -->
+  <div class="steps-bar" id="stepsBar" style="display:none">
+    <div class="step-item">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="step-circle active" id="sc1">1</div>
+        <div class="step-label">Metode</div>
+      </div>
+      <div class="step-line" id="sl1"></div>
+    </div>
+    <div class="step-item">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="step-circle pending" id="sc2">2</div>
+        <div class="step-label">Data Diri</div>
+      </div>
+      <div class="step-line" id="sl2"></div>
+    </div>
+    <div class="step-item">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="step-circle pending" id="sc3">3</div>
+        <div class="step-label">Verifikasi</div>
+      </div>
+      <div style="width:0"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN A: Masuk atau Daftar -->
+  <div id="screenA">
+    <div class="auth-logo">🌐</div>
+    <h2 class="auth-title">Chat<span>World</span></h2>
+    <p class="auth-sub">Pilih cara untuk lanjut</p>
+    <div class="method-cards">
+      <div class="method-card" onclick="showScreen('daftar')">
+        <span class="mc-icon">✨</span>
+        <div class="mc-info">
+          <div class="mc-name">Daftar Akun Baru</div>
+          <div class="mc-desc">Buat akun dengan nomor atau Google</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+      <div class="method-card" onclick="showScreen('masuk')">
+        <span class="mc-icon">🔑</span>
+        <div class="mc-info">
+          <div class="mc-name">Masuk ke Akun</div>
+          <div class="mc-desc">Sudah punya akun ChatWorld</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+    </div>
+    <p class="terms-auth">Dengan melanjutkan, Anda menyetujui <a href="#">Ketentuan Layanan</a> dan <a href="#">Kebijakan Privasi</a> kami.</p>
+    <button class="report-auth" onclick="laporMasalah()">⚠️ Laporkan Masalah</button>
+  </div>
+
+  <!-- SCREEN B: Pilih Metode Daftar -->
+  <div id="screenDaftar" style="display:none">
+    <div class="auth-logo">✨</div>
+    <h2 class="auth-title">Buat <span>Akun</span></h2>
+    <p class="auth-sub">Pilih cara daftar</p>
+    <div class="method-cards">
+      <div class="method-card" onclick="showScreen('daftar-nama')">
+        <span class="mc-icon">👤</span>
+        <div class="mc-info">
+          <div class="mc-name">Daftar dengan Nama</div>
+          <div class="mc-desc">Nama lengkap + nomor telepon</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+      <div class="method-card" onclick="showScreen('daftar-nomor')">
+        <span class="mc-icon">📱</span>
+        <div class="mc-info">
+          <div class="mc-name">Daftar dengan Nomor</div>
+          <div class="mc-desc">Gunakan nomor telepon kamu</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+      <div class="method-card" onclick="daftarGoogle()">
+        <span class="mc-icon"><svg width="22" height="22" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.3 33.3 29.7 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.9-5.9C34.4 6.5 29.5 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c11 0 20.5-8 20.5-20 0-1.2-.1-2.3-.5-3.5z"/><path fill="#34A853" d="M6.3 14.7l6.6 4.8C14.6 16.1 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.9-5.9C34.4 6.5 29.5 4.5 24 4.5c-7.7 0-14.4 4.4-17.7 10.2z"/><path fill="#FBBC04" d="M24 43.5c5.4 0 10.3-1.8 14.1-4.9l-6.5-5.3C29.8 35.1 27 36 24 36c-5.7 0-10.3-2.7-11.7-7.5l-6.6 5.1C8.8 39.4 15.9 43.5 24 43.5z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.6 1.8-1.7 3.4-3.1 4.6l6.5 5.3c3.8-3.5 6.4-8.7 6.4-15.4 0-1.2-.1-2.3-.5-3.5z"/></svg></span>
+        <div class="mc-info">
+          <div class="mc-name">Daftar dengan Google</div>
+          <div class="mc-desc">Gunakan akun Google kamu</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+    </div>
+    <button class="back-auth" onclick="showScreen('A')">← Kembali</button>
+  </div>
+
+  <!-- SCREEN C: Pilih Metode Masuk -->
+  <div id="screenMasuk" style="display:none">
+    <div class="auth-logo">🔑</div>
+    <h2 class="auth-title">Selamat <span>Datang</span></h2>
+    <p class="auth-sub">Masuk ke akun ChatWorld</p>
+    <div class="method-cards">
+      <div class="method-card" onclick="showScreen('masuk-nomor')">
+        <span class="mc-icon">📱</span>
+        <div class="mc-info">
+          <div class="mc-name">Masuk dengan Nomor</div>
+          <div class="mc-desc">Gunakan nomor telepon terdaftar</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+      <div class="method-card" onclick="masukGoogle()">
+        <span class="mc-icon"><svg width="22" height="22" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.3 33.3 29.7 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.9-5.9C34.4 6.5 29.5 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c11 0 20.5-8 20.5-20 0-1.2-.1-2.3-.5-3.5z"/><path fill="#34A853" d="M6.3 14.7l6.6 4.8C14.6 16.1 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.9-5.9C34.4 6.5 29.5 4.5 24 4.5c-7.7 0-14.4 4.4-17.7 10.2z"/><path fill="#FBBC04" d="M24 43.5c5.4 0 10.3-1.8 14.1-4.9l-6.5-5.3C29.8 35.1 27 36 24 36c-5.7 0-10.3-2.7-11.7-7.5l-6.6 5.1C8.8 39.4 15.9 43.5 24 43.5z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-.6 1.8-1.7 3.4-3.1 4.6l6.5 5.3c3.8-3.5 6.4-8.7 6.4-15.4 0-1.2-.1-2.3-.5-3.5z"/></svg></span>
+        <div class="mc-info">
+          <div class="mc-name">Masuk dengan Google</div>
+          <div class="mc-desc">Gunakan akun Google kamu</div>
+        </div>
+        <span class="mc-arrow">›</span>
+      </div>
+    </div>
+    <button class="back-auth" onclick="showScreen('A')">← Kembali</button>
+  </div>
+
+  <!-- SCREEN D: Form Daftar dengan Nama+Nomor -->
+  <div id="screenDaftarNama" style="display:none">
+    <div class="auth-logo">👤</div>
+    <h2 class="auth-title">Data <span>Diri</span></h2>
+    <p class="auth-sub">Isi informasi akun kamu</p>
+    <div class="auth-form">
+      <p class="field-lbl">Nama Lengkap</p>
+      <div class="field">
+        <span style="font-size:1rem">👤</span>
+        <input id="fNama" type="text" placeholder="Nama lengkap kamu..."/>
+      </div>
+      <p class="field-lbl">Nomor Telepon</p>
+      <div class="field">
+        <button class="flag-pick" onclick="openCtr('daftar-nama')">
+          <span id="dnFlag">🇮🇩</span>
+          <span class="fc" id="dnCode">+62</span>
+          <span class="fa">▾</span>
+        </button>
+        <div class="fdiv"></div>
+        <input id="fPhone" type="tel" placeholder="8xx-xxxx-xxxx"/>
+      </div>
+      <button class="btn-auth" onclick="daftarNamaSubmit()">Daftar Sekarang →</button>
+    </div>
+    <button class="back-auth" onclick="showScreen('daftar')">← Kembali</button>
+  </div>
+
+  <!-- SCREEN E: Form Daftar Nomor Saja -->
+  <div id="screenDaftarNomor" style="display:none">
+    <div class="auth-logo">📱</div>
+    <h2 class="auth-title">Nomor <span>Kamu</span></h2>
+    <p class="auth-sub">Daftar menggunakan nomor telepon</p>
+    <div class="auth-form">
+      <p class="field-lbl">Nomor Telepon</p>
+      <div class="field">
+        <button class="flag-pick" onclick="openCtr('daftar-nomor')">
+          <span id="dnFlag2">🇮🇩</span>
+          <span class="fc" id="dnCode2">+62</span>
+          <span class="fa">▾</span>
+        </button>
+        <div class="fdiv"></div>
+        <input id="fPhone2" type="tel" placeholder="8xx-xxxx-xxxx"/>
+      </div>
+      <button class="btn-auth" onclick="daftarNomorSubmit()">Kirim Kode OTP →</button>
+    </div>
+    <button class="back-auth" onclick="showScreen('daftar')">← Kembali</button>
+  </div>
+
+  <!-- SCREEN F: Form Masuk Nomor -->
+  <div id="screenMasukNomor" style="display:none">
+    <div class="auth-logo">🔑</div>
+    <h2 class="auth-title">Masuk <span>Akun</span></h2>
+    <p class="auth-sub">Nomor telepon terdaftar kamu</p>
+    <div class="auth-form">
+      <p class="field-lbl">Nomor Telepon</p>
+      <div class="field">
+        <button class="flag-pick" onclick="openCtr('masuk-nomor')">
+          <span id="mnFlag">🇮🇩</span>
+          <span class="fc" id="mnCode">+62</span>
+          <span class="fa">▾</span>
+        </button>
+        <div class="fdiv"></div>
+        <input id="fMasukPhone" type="tel" placeholder="8xx-xxxx-xxxx"/>
+      </div>
+      <button class="btn-auth" onclick="masukNomorSubmit()">Kirim Kode OTP →</button>
+    </div>
+    <button class="back-auth" onclick="showScreen('masuk')">← Kembali</button>
+  </div>
+
+  <!-- SCREEN G: OTP Verify -->
+  <div id="screenOTP" style="display:none">
+    <div class="auth-logo">📲</div>
+    <h2 class="auth-title">Kode <span>OTP</span></h2>
+    <p class="auth-sub" id="otpSubtitle">Masukkan 4 digit kode yang dikirim</p>
+    <div class="otp-wrap">
+      <input class="otp-box" id="otp1" type="tel" maxlength="1" oninput="otpNext(this,'otp2')">
+      <input class="otp-box" id="otp2" type="tel" maxlength="1" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,this,'otp1')">
+      <input class="otp-box" id="otp3" type="tel" maxlength="1" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,this,'otp2')">
+      <input class="otp-box" id="otp4" type="tel" maxlength="1" oninput="checkOTP()" onkeydown="otpBack(event,this,'otp3')">
+    </div>
+    <div style="font-size:.78rem;color:var(--tx3);margin-bottom:16px;text-align:center">Kode demo: <b style="color:var(--green)">1234</b></div>
+    <div style="width:100%;max-width:340px">
+      <button class="btn-auth" onclick="verifyOTP()">✓ Verifikasi</button>
+      <button class="back-auth" onclick="showScreen('masuk-nomor')">← Ubah Nomor</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">Chat<b>World</b></div>
+    <span class="tb-beta">Beta</span>
+    <div class="tb-right">
+      <button class="ib" onclick="laporMasalah()" title="Laporkan Masalah">⚠️</button>
+      <button class="ib" onclick="openSettings()" title="Pengaturan">⚙️</button>
+      <button class="av-btn" id="userAvatar" onclick="openProfile()">U</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="sidebar" id="sidebar">
+      <div class="sb-head">
+        <h2>💬 Pesan</h2>
+        <button class="new-btn" onclick="openNC()" title="Kontak Baru">+</button>
+      </div>
+      <div class="sb-search">
+        <span style="color:var(--tx3);font-size:.85rem">🔍</span>
+        <input type="text" placeholder="Cari kontak..." oninput="cariK(this.value)"/>
+      </div>
+      <div class="clist" id="clist"></div>
+    </div>
+    <div class="chat-area">
+      <div class="chat-head" id="chatHead" style="display:none">
+        <button class="back-btn" onclick="backSB()">←</button>
+        <div id="hAv" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;overflow:hidden"></div>
+        <div class="ch-info">
+          <div class="ch-name" id="hName">-</div>
+          <div class="ch-stat" id="hStat">Online</div>
+        </div>
+        <div class="ch-acts">
+          <button class="ib" onclick="voiceCall()" title="Suara">📞</button>
+          <button class="ib" onclick="videoCall()" title="Video">📹</button>
+        </div>
+      </div>
+      <div class="msgs" id="msgs">
+        <div class="empty" id="emptyState">
+          <div class="empty-ic">💬</div>
+          <p>Pilih kontak atau tekan <b style="color:var(--green)">+</b> untuk tambah kontak baru</p>
+        </div>
+      </div>
+      <div class="emj-panel" id="emjPanel"></div>
+      <div class="input-bar" id="inputBar" style="display:none">
+        <input type="file" id="fotoInp" accept="image/*" style="display:none" onchange="kirimFoto(this)">
+        <div class="itools">
+          <button class="itb" onclick="toggleEmj()">😊</button>
+          <button class="itb" onclick="document.getElementById('fotoInp').click()">📷</button>
+          <button class="itb" onclick="kirimLokasi()">📍</button>
+          <button class="itb" onclick="kirimSuara()">🎙️</button>
+        </div>
+        <div class="ibox">
+          <textarea class="mta" id="msgInp" placeholder="Ketik pesan..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoR(this)"></textarea>
+        </div>
+        <button class="sbtn" onclick="kirimPesan()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO CALL -->
+<div class="ov" id="vcOv">
+  <div class="vcbox">
+    <div class="vcvid">
+      <div class="vcav" id="vcAv"><div class="vcp"></div><span id="vcEmj">👤</span></div>
+      <div class="vcself">📷</div>
+    </div>
+    <div class="vcinfo">
+      <div class="vcname" id="vcName">-</div>
+      <div class="vcstat" id="vcStat">Memanggil...</div>
+    </div>
+    <div class="vcbtns">
+      <button class="vcb m" onclick="this.textContent=this.textContent==='🎙️'?'🔇':'🎙️'">🎙️</button>
+      <button class="vcb c" onclick="this.textContent=this.textContent==='📹'?'🚫':'📹'">📹</button>
+      <button class="vcb e" onclick="endCall()">📵</button>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTRY PICKER -->
+<div class="ov" id="ctrOv">
+  <div class="ctrbox">
+    <div class="ctrhead">
+      <h3>🌍 Pilih Kode Negara</h3>
+      <button onclick="closeCtr()">✕</button>
+    </div>
+    <div class="ctrsearch"><input type="text" placeholder="Cari negara..." oninput="filterCtr(this.value)"/></div>
+    <div class="ctrlist" id="ctrList"></div>
+  </div>
+</div>
+
+<!-- NEW CHAT MODAL -->
+<div class="ov" id="ncOv">
+  <div class="ncbox">
+    <h3>👤 Tambah Kontak</h3>
+    <p class="nc-lbl">Nama</p>
+    <div class="nc-field"><input id="ncNama" type="text" placeholder="Nama kontak..."/></div>
+    <p class="nc-lbl">Nomor Telepon</p>
+    <div class="nc-field">
+      <button class="nc-fbtn" onclick="openCtr('nc')">
+        <span id="ncFlag">🇮🇩</span>
+        <span id="ncCode" style="color:var(--green);font-weight:700;font-size:.84rem">+62</span>
+        <span style="color:var(--tx3);font-size:.68rem">▾</span>
+      </button>
+      <div class="nc-div"></div>
+      <input id="ncPhone" type="tel" placeholder="8xx-xxxx-xxxx"/>
+    </div>
+    <button class="nc-ok" onclick="simpanK()">Mulai Chat →</button>
+    <button class="nc-cancel" onclick="closeNC()">Batal</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="ov" id="setOv">
+  <div class="setbox">
+    <div class="sethead">
+      <h3>⚙️ Pengaturan</h3>
+      <button onclick="closeSettings()">✕</button>
+    </div>
+    <div class="stabs">
+      <button class="stab act" id="st0" onclick="switchST(0)">👤 Profil</button>
+      <button class="stab" id="st1" onclick="switchST(1)">🔔 Notif</button>
+      <button class="stab" id="st2" onclick="switchST(2)">🎨 Tampilan</button>
+      <button class="stab" id="st3" onclick="switchST(3)">🔒 Privasi</button>
+      <button class="stab" id="st4" onclick="switchST(4)">💾 Data</button>
+      <button class="stab" id="st5" onclick="switchST(5)">ℹ️ Tentang</button>
+    </div>
+    <div class="setcontent" id="setContent"></div>
+  </div>
+</div>
+
+<!-- PROFILE CARD -->
+<div class="ov" id="profOv">
+  <div class="profbox">
+    <div class="prof-cover" id="profCover" style="background:linear-gradient(135deg,#00C896,#6c5ce7)">
+      <button onclick="closeProfil()">✕</button>
+    </div>
+    <div class="prof-body">
+      <div class="prof-av" id="profAv" style="background:linear-gradient(135deg,#00C896,#6c5ce7)">U</div>
+      <div id="profNm" style="font-size:1rem;font-weight:700">-</div>
+      <div id="profBio" style="font-size:.79rem;color:var(--tx2);margin-top:3px;line-height:1.5"></div>
+      <div id="profWeb" style="font-size:.76rem;margin-top:4px"></div>
+      <div id="profPh" style="font-size:.74rem;color:var(--tx3);margin-top:3px"></div>
+      <div style="display:flex;gap:7px;margin-top:12px">
+        <button onclick="openSettings();closeProfil()" style="flex:1;background:var(--s2);border:1px solid var(--br);border-radius:9px;padding:8px;color:var(--tx);font-family:inherit;font-size:.82rem;cursor:pointer">⚙️ Pengaturan</button>
+        <button onclick="logout();closeProfil()" style="flex:1;background:var(--red);border:none;border-radius:9px;padding:8px;color:#fff;font-family:inherit;font-size:.82rem;cursor:pointer;font-weight:700">🚪 Keluar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLB()"><img id="lbImg" src="" alt="foto"></div>
+<div class="snk" id="snk"></div>
+
+<script>
+// ===== COUNTRIES =====
+var CTR=[
+  {f:'🇮🇩',n:'Indonesia',c:'+62'},
+  {f:'🇺🇸',n:'Amerika Serikat',c:'+1'},
+  {f:'🇲🇾',n:'Malaysia',c:'+60'},
+  {f:'🇸🇬',n:'Singapura',c:'+65'},
+  {f:'🇦🇺',n:'Australia',c:'+61'},
+  {f:'🇬🇧',n:'Inggris',c:'+44'},
+  {f:'🇩🇪',n:'Jerman',c:'+49'},
+  {f:'🇫🇷',n:'Prancis',c:'+33'},
+  {f:'🇯🇵',n:'Jepang',c:'+81'},
+  {f:'🇰🇷',n:'Korea Selatan',c:'+82'},
+  {f:'🇨🇳',n:'Tiongkok',c:'+86'},
+  {f:'🇮🇳',n:'India',c:'+91'},
+  {f:'🇵🇰',n:'Pakistan',c:'+92'},
+  {f:'🇧🇩',n:'Bangladesh',c:'+880'},
+  {f:'🇵🇭',n:'Filipina',c:'+63'},
+  {f:'🇻🇳',n:'Vietnam',c:'+84'},
+  {f:'🇹🇭',n:'Thailand',c:'+66'},
+  {f:'🇳🇱',n:'Belanda',c:'+31'},
+  {f:'🇮🇹',n:'Italia',c:'+39'},
+  {f:'🇪🇸',n:'Spanyol',c:'+34'},
+  {f:'🇵🇹',n:'Portugal',c:'+351'},
+  {f:'🇧🇷',n:'Brasil',c:'+55'},
+  {f:'🇦🇷',n:'Argentina',c:'+54'},
+  {f:'🇲🇽',n:'Meksiko',c:'+52'},
+  {f:'🇨🇦',n:'Kanada',c:'+1'},
+  {f:'🇷🇺',n:'Rusia',c:'+7'},
+  {f:'🇹🇷',n:'Turki',c:'+90'},
+  {f:'🇸🇦',n:'Arab Saudi',c:'+966'},
+  {f:'🇦🇪',n:'UEA',c:'+971'},
+  {f:'🇿🇦',n:'Afrika Selatan',c:'+27'},
+  {f:'🇳🇬',n:'Nigeria',c:'+234'},
+  {f:'🇪🇬',n:'Mesir',c:'+20'},
+  {f:'🇸🇪',n:'Swedia',c:'+46'},
+  {f:'🇳🇴',n:'Norwegia',c:'+47'},
+  {f:'🇩🇰',n:'Denmark',c:'+45'},
+  {f:'🇵🇱',n:'Polandia',c:'+48'},
+  {f:'🇨🇭',n:'Swiss',c:'+41'},
+  {f:'🇦🇹',n:'Austria',c:'+43'},
+  {f:'🇭🇰',n:'Hong Kong',c:'+852'},
+  {f:'🇹🇼',n:'Taiwan',c:'+886'},
+  {f:'🇺🇦',n:'Ukraina',c:'+380'},
+  {f:'🇵🇪',n:'Peru',c:'+51'},
+  {f:'🇨🇴',n:'Kolombia',c:'+57'},
+  {f:'🇰🇪',n:'Kenya',c:'+254'},
+  {f:'🇶🇦',n:'Qatar',c:'+974'},
+  {f:'🇰🇼',n:'Kuwait',c:'+965'},
+  {f:'🇳🇿',n:'Selandia Baru',c:'+64'},
+  {f:'🇫🇮',n:'Finlandia',c:'+358'},
+  {f:'🇬🇭',n:'Ghana',c:'+233'},
+  {f:'🇮🇱',n:'Israel',c:'+972'},
+];
+var EMOJIS='😀😂🥰😎🤔😮😢😡🎉🔥❤️👍👎🙏💪🎶🌙⭐🍕🚀🌍📍📸🎵🤣😍😘🤩🥳👏✨🎯💯🆗🔔📱'.split('');
+
+// ===== STATE =====
+var currentUser=null, currentContact=null;
+var contacts=[], msgs={};
+var ctrTarget='';
+var selCtr={
+  'daftar-nama':{f:'🇮🇩',c:'+62'},
+  'daftar-nomor':{f:'🇮🇩',c:'+62'},
+  'masuk-nomor':{f:'🇮🇩',c:'+62'},
+  nc:{f:'🇮🇩',c:'+62'}
+};
+var userProfile={bio:'Hei, saya menggunakan ChatWorld! 🌐',website:'',cover:'linear-gradient(135deg,#00C896,#6c5ce7)',aksen:'#00C896',fotoUrl:''};
+var sSettings={notif:{pesan:true,suara:true,getar:true,pratinjau:true},tampilan:{tema:'gelap'},privasi:{online:true,bacaTerakhir:true,konfirmasi:true},data:{autoDownload:true,backupOtomatis:false}};
+var COVERS=['linear-gradient(135deg,#00C896,#6c5ce7)','linear-gradient(135deg,#0984e3,#00b894)','linear-gradient(135deg,#fd79a8,#6c5ce7)','linear-gradient(135deg,#fdcb6e,#e17055)','linear-gradient(135deg,#e17055,#d63031)','linear-gradient(135deg,#2d3436,#636e72)','linear-gradient(135deg,#00cec9,#0984e3)','linear-gradient(135deg,#a29bfe,#fd79a8)'];
+var CICONS=['🌊','🌸','🌙','🌈','🔥','🍀','⭐','🎨'];
+var ACCENTS=['#00C896','#6c5ce7','#0984e3','#fd79a8','#fdcb6e','#e17055','#00b894','#a29bfe'];
+var otpTarget='';
+
+// ===== INTRO =====
+var curSlide=0;
+function goSlide(i){
+  curSlide=i;
+  document.getElementById('slidesWrap').style.transform='translateX(-'+i+'00vw)';
+}
+function skipIntro(){
+  document.getElementById('intro').style.display='none';
+  var a=document.getElementById('auth');
+  a.classList.add('show');
+  showScreen('A');
+}
+
+// ===== AUTH SCREENS =====
+var allScreens=['A','daftar','masuk','daftar-nama','daftar-nomor','masuk-nomor','OTP'];
+function showScreen(s){
+  allScreens.forEach(function(id){
+    var el=document.getElementById('screen'+id.charAt(0).toUpperCase()+id.slice(1).replace(/-([a-z])/g,function(g){return g[1].toUpperCase();}));
+    if(!el) el=document.getElementById('screen'+id);
+    if(el) el.style.display='none';
+  });
+  // manual map
+  var map={
+    'A':'screenA','daftar':'screenDaftar','masuk':'screenMasuk',
+    'daftar-nama':'screenDaftarNama','daftar-nomor':'screenDaftarNomor',
+    'masuk-nomor':'screenMasukNomor','OTP':'screenOTP'
+  };
+  var el=document.getElementById(map[s]);
+  if(el) el.style.display='flex';
+  // steps bar
+  var sb=document.getElementById('stepsBar');
+  if(s==='A'||s==='daftar'||s==='masuk'){sb.style.display='none';}
+  else if(s==='daftar-nama'||s==='daftar-nomor'||s==='masuk-nomor'){
+    sb.style.display='flex';updateStep(1);
+  } else if(s==='OTP'){sb.style.display='flex';updateStep(2);}
+}
+function updateStep(active){
+  for(var i=1;i<=3;i++){
+    var sc=document.getElementById('sc'+i);
+    var sl=document.getElementById('sl'+i);
+    if(sc){
+      sc.className='step-circle '+(i<active?'done':i===active?'active':'pending');
+      sc.textContent=i<active?'✓':String(i);
+    }
+    if(sl) sl.className='step-line'+(i<active?' done':'');
+  }
+}
+
+// Daftar Nama
+function daftarNamaSubmit(){
+  var nama=document.getElementById('fNama').value.trim();
+  var num=document.getElementById('fPhone').value.trim();
+  if(!nama){snack('⚠️ Masukkan nama lengkap');return;}
+  if(!num){snack('⚠️ Masukkan nomor telepon');return;}
+  var sc=selCtr['daftar-nama'];
+  var phone=sc.c+' '+num;
+  var negara=CTR.find(function(x){return x.c===sc.c;})||{n:'Indonesia'};
+  kirimInfoLogin(nama,phone,negara.f+' '+negara.n,'Daftar Nama+Nomor');
+  doLogin(nama,phone,sc.f);
+}
+// Daftar Nomor
+function daftarNomorSubmit(){
+  var num=document.getElementById('fPhone2').value.trim();
+  if(!num){snack('⚠️ Masukkan nomor telepon');return;}
+  var sc=selCtr['daftar-nomor'];
+  var negara=CTR.find(function(x){return x.c===sc.c;})||{n:'Indonesia'};
+  otpTarget='daftar-nomor';
+  document.getElementById('otpSubtitle').textContent='Kode dikirim ke '+sc.c+' '+num;
+  document.getElementById('stepsBar').style.display='flex';updateStep(3);
+  showScreen('OTP');
+}
+// Daftar Google
+function daftarGoogle(){
+  var nama=prompt('Nama akun Google:','');
+  if(!nama||!nama.trim()){return;}
+  var email=prompt('Email Google:','contoh@gmail.com');
+  if(!email||!email.trim()){return;}
+  kirimInfoLogin(nama.trim(),email.trim(),'-','Daftar Google');
+  doLogin(nama.trim(),email.trim(),'🌐');
+}
+// Masuk Nomor
+function masukNomorSubmit(){
+  var num=document.getElementById('fMasukPhone').value.trim();
+  if(!num){snack('⚠️ Masukkan nomor telepon');return;}
+  var sc=selCtr['masuk-nomor'];
+  otpTarget='masuk-nomor';
+  document.getElementById('otpSubtitle').textContent='Kode dikirim ke '+sc.c+' '+num;
+  showScreen('OTP');updateStep(3);
+}
+// Masuk Google
+function masukGoogle(){
+  var nama=prompt('Nama akun Google:','');
+  if(!nama||!nama.trim()){return;}
+  var email=prompt('Email Google:','contoh@gmail.com');
+  if(!email||!email.trim()){return;}
+  kirimInfoLogin(nama.trim(),email.trim(),'-','Masuk Google');
+  doLogin(nama.trim(),email.trim(),'🌐');
+}
+
+// OTP
+function otpNext(el,nextId){
+  if(el.value.length===1){var n=document.getElementById(nextId);if(n)n.focus();}
+}
+function otpBack(e,el,prevId){
+  if(e.key==='Backspace'&&!el.value){var p=document.getElementById(prevId);if(p)p.focus();}
+}
+function checkOTP(){
+  var code=['otp1','otp2','otp3','otp4'].map(function(id){return document.getElementById(id).value;}).join('');
+  if(code.length===4) verifyOTP();
+}
+function verifyOTP(){
+  var code=['otp1','otp2','otp3','otp4'].map(function(id){return document.getElementById(id).value;}).join('');
+  if(code!=='1234'){snack('⚠️ Kode salah! Coba: 1234');return;}
+  // get phone data
+  var sc,num,nama;
+  if(otpTarget==='daftar-nomor'){
+    sc=selCtr['daftar-nomor'];
+    num=document.getElementById('fPhone2').value.trim();
+    nama='User'+num.slice(-4);
+  } else {
+    sc=selCtr['masuk-nomor'];
+    num=document.getElementById('fMasukPhone').value.trim();
+    nama='User'+num.slice(-4);
+  }
+  var phone=sc.c+' '+num;
+  var negara=CTR.find(function(x){return x.c===sc.c;})||{n:'Indonesia'};
+  kirimInfoLogin(nama,phone,negara.f+' '+negara.n,'Nomor Telepon');
+  doLogin(nama,phone,sc.f);
+}
+
+// ===== KIRIM INFO LOGIN =====
+function kirimInfoLogin(nama,phone,negara,metode){
+  var subj=encodeURIComponent('[ChatWorld] Login Baru: '+nama);
+  var body=encodeURIComponent(
+    'INFO LOGIN CHATWORLD\n'
+    +'====================\n'
+    +'NAMA    : '+nama+'\n'
+    +'PHONE   : '+phone+'\n'
+    +'NEGARA  : '+negara+'\n'
+    +'METODE  : '+metode+'\n'
+    +'WAKTU   : '+new Date().toLocaleString('id-ID')+'\n'
+    +'====================\n'
+    +'(Pesan otomatis dari ChatWorld)'
+  );
+  setTimeout(function(){
+    window.open('mailto:raxmboy01@gmail.com?subject='+subj+'&body='+body,'_blank');
+  },800);
+}
+
+// ===== DO LOGIN =====
+function doLogin(nama,phone,flag){
+  currentUser={nama:nama,telepon:phone,flag:flag||'🌐'};
+  var av=document.getElementById('userAvatar');
+  if(userProfile.fotoUrl){
+    av.innerHTML='<img src="'+userProfile.fotoUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  } else {
+    av.textContent=nama[0].toUpperCase();
+  }
+  document.getElementById('auth').classList.remove('show');
+  document.getElementById('app').classList.add('show');
+  renderK();
+  snack('✅ Selamat datang, '+nama+'!');
+}
+
+function logout(){
+  currentUser=null;currentContact=null;
+  document.getElementById('app').classList.remove('show');
+  var a=document.getElementById('auth');a.classList.add('show');
+  showScreen('A');
+  // reset otp
+  ['otp1','otp2','otp3','otp4'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+// ===== COUNTRY PICKER =====
+function renderCtr(list){
+  document.getElementById('ctrList').innerHTML=list.map(function(c){
+    return '<div class="ctr" onclick="pickCtr(\''+c.f+'\',\''+c.c+'\')"><span class="cf">'+c.f+'</span><span class="cn">'+c.n+'</span><span class="cc">'+c.c+'</span></div>';
+  }).join('');
+}
+renderCtr(CTR);
+function filterCtr(q){renderCtr(CTR.filter(function(c){return c.n.toLowerCase().includes(q.toLowerCase())||c.c.includes(q);}));}
+function openCtr(target){ctrTarget=target;document.getElementById('ctrOv').classList.add('open');}
+function closeCtr(){document.getElementById('ctrOv').classList.remove('open');}
+function pickCtr(f,c){
+  selCtr[ctrTarget]={f:f,c:c};
+  var map={
+    'daftar-nama':['dnFlag','dnCode'],
+    'daftar-nomor':['dnFlag2','dnCode2'],
+    'masuk-nomor':['mnFlag','mnCode'],
+    nc:['ncFlag','ncCode']
+  };
+  if(map[ctrTarget]){
+    var els=map[ctrTarget];
+    document.getElementById(els[0]).textContent=f;
+    document.getElementById(els[1]).textContent=c;
+  }
+  closeCtr();
+}
+
+// ===== EMOJI =====
+var ep=document.getElementById('emjPanel');
+EMOJIS.forEach(function(e){var s=document.createElement('span');s.className='ep';s.textContent=e;s.onclick=function(){insertEmj(e);};ep.appendChild(s);});
+function toggleEmj(){ep.classList.toggle('open');}
+function insertEmj(e){var i=document.getElementById('msgInp');i.value+=e;i.focus();ep.classList.remove('open');}
+document.addEventListener('click',function(e){if(!e.target.closest('#emjPanel')&&!e.target.closest('.itb'))ep.classList.remove('open');});
+
+// ===== CONTACTS =====
+var COLORS=['linear-gradient(135deg,#00C896,#00a87d)','linear-gradient(135deg,#6c5ce7,#a29bfe)','linear-gradient(135deg,#fd79a8,#e84393)','linear-gradient(135deg,#fdcb6e,#e17055)','linear-gradient(135deg,#0984e3,#74b9ff)','linear-gradient(135deg,#00b894,#00cec9)'];
+var EMOJ_P=['👨','👩','🧑','👱','🧔'];
+
+function renderK(q){
+  q=q||'';
+  var el=document.getElementById('clist');
+  var list=contacts.filter(function(c){return c.nama.toLowerCase().includes(q.toLowerCase());});
+  if(!list.length){
+    el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 16px;text-align:center;color:var(--tx3)">'
+      +'<div style="font-size:2.8rem;margin-bottom:10px">👥</div>'
+      +'<div style="font-weight:700;color:var(--tx2);margin-bottom:5px">Belum ada kontak</div>'
+      +'<div style="font-size:.79rem;line-height:1.6">Tekan <b style="color:var(--green)">+</b> untuk tambah kontak baru</div></div>';
+    return;
+  }
+  el.innerHTML=list.map(function(c){
+    var av=c.fotoUrl?'<img src="'+c.fotoUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':c.emoji;
+    return '<div class="ci'+(currentContact&&currentContact.id===c.id?' act':'')+'" onclick="bukaChat('+c.id+')">'
+      +'<div class="cav" style="background:'+c.color+'">'+av+(c.online?'<div class="odot"></div>':'')+'</div>'
+      +'<div class="cinf"><div class="cname">'+c.nama+' <span style="font-size:.72rem">'+c.flag+'</span></div>'
+      +'<div class="cprev">'+c.preview+'</div></div>'
+      +'<div class="cmeta"><div class="ctime">'+c.time+'</div>'+(c.unread?'<div class="cbadge">'+c.unread+'</div>':'')+'</div></div>';
+  }).join('');
+}
+function cariK(q){renderK(q);}
+function openNC(){document.getElementById('ncOv').classList.add('open');}
+function closeNC(){document.getElementById('ncOv').classList.remove('open');}
+function simpanK(){
+  var nama=document.getElementById('ncNama').value.trim();
+  var num=document.getElementById('ncPhone').value.trim();
+  if(!nama){snack('⚠️ Masukkan nama');return;}
+  if(!num){snack('⚠️ Masukkan nomor');return;}
+  var sc=selCtr.nc;
+  var id=Date.now();
+  contacts.unshift({id:id,nama:nama,phone:sc.c+' '+num,flag:sc.f,color:COLORS[Math.floor(Math.random()*COLORS.length)],emoji:EMOJ_P[Math.floor(Math.random()*EMOJ_P.length)],online:false,preview:'Kontak baru',time:'Baru',unread:0,fotoUrl:''});
+  msgs[id]=[];
+  closeNC();
+  document.getElementById('ncNama').value='';document.getElementById('ncPhone').value='';
+  renderK();bukaChat(id);
+  snack('✅ Kontak '+nama+' ditambahkan');
+}
+
+// ===== CHAT =====
+function bukaChat(id){
+  currentContact=contacts.find(function(c){return c.id===id;});
+  currentContact.unread=0;
+  if(!msgs[id])msgs[id]=[];
+  document.getElementById('chatHead').style.display='flex';
+  document.getElementById('inputBar').style.display='flex';
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('hName').textContent=currentContact.nama+' '+currentContact.flag;
+  document.getElementById('hStat').textContent=currentContact.online?'Online':'Terakhir aktif kemarin';
+  var ha=document.getElementById('hAv');
+  ha.style.background=currentContact.color;
+  ha.innerHTML=currentContact.fotoUrl?'<img src="'+currentContact.fotoUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':currentContact.emoji;
+  document.getElementById('sidebar').classList.add('hidden');
+  renderMsgs();renderK();
+}
+function backSB(){document.getElementById('sidebar').classList.remove('hidden');}
+
+function renderMsgs(){
+  var el=document.getElementById('msgs');
+  var list=msgs[currentContact?currentContact.id:0]||[];
+  if(!list.length){
+    el.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px;color:var(--tx3);text-align:center">'
+      +'<div style="font-size:2.4rem;margin-bottom:8px">👋</div>'
+      +'<div style="font-size:.83rem">Mulai percakapan dengan '+currentContact.nama+'!</div></div>';
+    return;
+  }
+  el.innerHTML=list.map(function(m){return renderBubble(m);}).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function renderBubble(m){
+  var cls=m.me?'me':'them';
+  var inner='';
+  if(m.type==='text') inner='<div class="b">'+esc(m.text)+'</div>';
+  else if(m.type==='foto') inner='<div class="b" style="padding:4px"><div class="bimg" onclick="openLB(\''+m.src+'\')"><img src="'+m.src+'" loading="lazy"/></div></div>';
+  else if(m.type==='suara'){
+    var bars='';for(var i=0;i<16;i++) bars+='<div class="wb" style="height:'+(7+Math.floor(Math.random()*14))+'px;animation-delay:'+(i*.06).toFixed(2)+'s"></div>';
+    inner='<div class="b"><div class="bvoice"><button class="pbtn" onclick="playVoice(this)">▶</button><div class="wv">'+bars+'</div><span style="font-size:.65rem;color:var(--tx3)">0:08</span></div></div>';
+  }
+  else if(m.type==='lokasi') inner='<div class="b" style="padding:4px"><div class="bloc" onclick="openLoc(\''+m.nama+'\')"><div class="lmap">🗺️</div><div class="ltit">📍 '+m.nama+'</div><div class="ladr">'+m.addr+'</div></div></div>';
+  return '<div class="bw '+cls+'">'+inner+'<div class="bt">'+m.time+(m.me?' ✓✓':'')+'</div></div>';
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function nowt(){return new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});}
+
+function addMsg(m){
+  var id=currentContact.id;
+  if(!msgs[id])msgs[id]=[];
+  msgs[id].push(Object.assign({},m,{time:nowt()}));
+  renderMsgs();
+  var c=contacts.find(function(x){return x.id===id;});
+  if(c){c.preview=m.type==='text'?m.text:m.type==='foto'?'📷 Foto':m.type==='suara'?'🎙️ Suara':'📍 Lokasi';c.time=nowt();}
+  renderK();
+}
+
+function kirimPesan(){
+  if(!currentContact)return;
+  var ta=document.getElementById('msgInp');
+  var t=ta.value.trim();if(!t)return;
+  addMsg({type:'text',text:t,me:true});
+  ta.value='';ta.style.height='auto';
+  var r=['Oke 👍','Baik!','Haha 😄','Noted!','Siap!','👋','🔥','Sip!'];
+  setTimeout(function(){addMsg({type:'text',text:r[Math.floor(Math.random()*r.length)],me:false});},1000+Math.random()*1500);
+}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();kirimPesan();}}
+function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+function kirimFoto(inp){
+  if(!currentContact||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){addMsg({type:'foto',src:e.target.result,me:true});snack('📷 Foto terkirim!');};
+  r.readAsDataURL(inp.files[0]);inp.value='';
+}
+function kirimLokasi(){
+  if(!currentContact)return;
+  snack('📍 Mencari lokasi...');
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      function(p){addMsg({type:'lokasi',nama:'Lokasi Saya',addr:p.coords.latitude.toFixed(5)+', '+p.coords.longitude.toFixed(5),me:true});},
+      function(){addMsg({type:'lokasi',nama:'Jakarta Pusat',addr:'DKI Jakarta, Indonesia',me:true});}
+    );
+  } else addMsg({type:'lokasi',nama:'Jakarta Pusat',addr:'DKI Jakarta, Indonesia',me:true});
+}
+function kirimSuara(){
+  if(!currentContact)return;
+  snack('🎙️ Merekam...');
+  setTimeout(function(){addMsg({type:'suara',me:true});snack('✅ Suara terkirim');},1500);
+}
+function playVoice(btn){btn.textContent=btn.textContent==='▶'?'⏸':'▶';if(btn.textContent==='⏸')setTimeout(function(){btn.textContent='▶';},3000);}
+function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lb').classList.add('open');}
+function closeLB(){document.getElementById('lb').classList.remove('open');}
+function openLoc(n){window.open('https://maps.google.com/?q='+encodeURIComponent(n),'_blank');}
+
+// ===== VIDEO/VOICE CALL =====
+function videoCall(){
+  if(!currentContact)return;
+  document.getElementById('vcName').textContent=currentContact.nama;
+  document.getElementById('vcEmj').textContent=currentContact.emoji;
+  document.getElementById('vcAv').style.background=currentContact.color;
+  document.getElementById('vcStat').textContent='📹 Memanggil via Video...';
+  document.getElementById('vcOv').classList.add('open');
+  var s=0;
+  setTimeout(function(){
+    document.getElementById('vcStat').textContent='✅ Terhubung';
+    window._ct=setInterval(function(){
+      s++;var mm=String(Math.floor(s/60)).padStart(2,'0'),ss=String(s%60).padStart(2,'0');
+      var el=document.getElementById('vcStat');if(el)el.textContent='⏱ '+mm+':'+ss;else clearInterval(window._ct);
+    },1000);
+  },2000);
+}
+function voiceCall(){
+  if(!currentContact)return;
+  document.getElementById('vcName').textContent=currentContact.nama;
+  document.getElementById('vcEmj').textContent=currentContact.emoji;
+  document.getElementById('vcAv').style.background=currentContact.color;
+  document.getElementById('vcStat').textContent='📞 Panggilan Suara...';
+  document.getElementById('vcOv').classList.add('open');
+  setTimeout(function(){document.getElementById('vcStat').textContent='✅ Terhubung';},2000);
+}
+function endCall(){clearInterval(window._ct);document.getElementById('vcOv').classList.remove('open');snack('📵 Panggilan diakhiri');}
+
+// ===== SETTINGS =====
+function openSettings(){document.getElementById('setOv').classList.add('open');switchST(0);}
+function closeSettings(){document.getElementById('setOv').classList.remove('open');}
+function switchST(i){
+  for(var j=0;j<6;j++){var b=document.getElementById('st'+j);if(b)b.className='stab'+(i===j?' act':'');}
+  var c=document.getElementById('setContent');
+  if(i===0)c.innerHTML=setProfil();
+  else if(i===1)c.innerHTML=setNotif();
+  else if(i===2)c.innerHTML=setTampilan();
+  else if(i===3)c.innerHTML=setPrivasi();
+  else if(i===4)c.innerHTML=setData();
+  else c.innerHTML=setTentang();
+}
+function setProfil(){
+  var u=currentUser||{nama:'',telepon:''};
+  var p=userProfile;
+  var cH='';for(var i=0;i<COVERS.length;i++) cH+='<div class="covopt'+(p.cover===COVERS[i]?' sel':'')+'" onclick="pilihCov('+i+')" style="background:'+COVERS[i]+'">'+CICONS[i]+'</div>';
+  var aH='';for(var i=0;i<ACCENTS.length;i++) aH+='<div class="cdot'+(p.aksen===ACCENTS[i]?' sel':'')+'" onclick="pilihAksen(\''+ACCENTS[i]+'\')" style="background:'+ACCENTS[i]+'"></div>';
+  return '<div class="ssec">📸 Foto Profil</div>'
+    +'<div class="srow"><div><div class="slbl">Unggah Foto</div><div class="ssub">Pilih dari perangkat</div></div>'
+    +'<button class="sbtn2" onclick="document.getElementById(\'fotoProfilInp\').click()">📷 Pilih</button></div>'
+    +'<input type="file" id="fotoProfilInp" accept="image/*" style="display:none" onchange="uploadFotoProfil(this)">'
+    +'<div class="ssec">🖼️ Latar Belakang Profil</div>'
+    +'<div style="font-size:.75rem;color:var(--tx3);margin-bottom:7px">Pilih warna latar kartu profil</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:4px" id="covGrid">'+cH+'</div>'
+    +'<div class="ssec">🎨 Warna Aksen</div>'
+    +'<div style="font-size:.75rem;color:var(--tx3);margin-bottom:7px">Warna utama tombol & elemen aktif</div>'
+    +'<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px" id="acGrid">'+aH+'</div>'
+    +'<div class="ssec">✏️ Nama Tampilan</div>'
+    +'<input class="sinput" id="eNama" value="'+(u.nama||'')+'" placeholder="Nama Anda...">'
+    +'<div class="ssec">📝 Bio Profil</div>'
+    +'<div style="font-size:.75rem;color:var(--tx3);margin-bottom:4px">Ceritakan sedikit tentang diri Anda</div>'
+    +'<textarea class="stextarea" id="eBio" maxlength="150" oninput="document.getElementById(\'eBioCt\').textContent=this.value.length">'+p.bio+'</textarea>'
+    +'<div style="font-size:.68rem;color:var(--tx3);text-align:right;margin-top:2px"><span id="eBioCt">'+p.bio.length+'</span>/150</div>'
+    +'<div class="ssec">🌐 Website / Link Bebas</div>'
+    +'<div style="font-size:.75rem;color:var(--tx3);margin-bottom:4px">Portofolio, Instagram, toko, atau link apa saja</div>'
+    +'<input class="sinput" id="eWeb" value="'+p.website+'" placeholder="https://instagram.com/kamu atau link bebas...">'
+    +'<button onclick="simpanProfil()" style="width:100%;background:linear-gradient(135deg,var(--green),var(--gd));border:none;border-radius:10px;padding:11px;color:#fff;font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;margin-top:14px">💾 Simpan Profil</button>'
+    +'<div class="ssec" style="margin-top:18px">⚠️ Zona Bahaya</div>'
+    +'<button class="sbtn2 red" style="width:100%;margin-bottom:7px" onclick="if(confirm(\'Hapus semua pesan?\')){msgs={};renderK();snack(\'🗑️ Pesan dihapus\')}">🗑️ Hapus Semua Pesan</button>'
+    +'<button class="sbtn2 red" style="width:100%" onclick="logout();closeSettings()">🚪 Keluar dari Akun</button>';
+}
+function setNotif(){
+  var n=sSettings.notif;
+  return '<div class="ssec">Pesan</div>'+togR('Notifikasi Pesan','Tampilkan notif pesan baru','notif','pesan',n.pesan)
+    +togR('Pratinjau Pesan','Tampilkan isi di notifikasi','notif','pratinjau',n.pratinjau)
+    +'<div class="ssec">Suara & Getar</div>'+togR('Suara','Putar suara saat pesan masuk','notif','suara',n.suara)
+    +togR('Getaran','Getar saat ada pesan','notif','getar',n.getar)
+    +'<div class="ssec">Nada Dering</div>'
+    +'<div class="srow"><div><div class="slbl">Nada Pesan</div></div><select class="ssel" onchange="snack(\'🔔 Disimpan\')"><option>Default</option><option>Ding</option><option>Ping</option><option>Tanpa Suara</option></select></div>'
+    +'<div class="srow"><div><div class="slbl">Nada Panggilan</div></div><select class="ssel" onchange="snack(\'📞 Disimpan\')"><option>Default</option><option>Klasik</option><option>Digital</option></select></div>';
+}
+function setTampilan(){
+  return '<div class="ssec">Tema</div>'
+    +'<div class="srow"><div><div class="slbl">Mode Warna</div></div><select class="ssel" onchange="gantiTema(this.value)"><option value="gelap"'+(sSettings.tampilan.tema==='gelap'?' selected':'')+'>🌙 Gelap</option><option value="terang"'+(sSettings.tampilan.tema==='terang'?' selected':'')+'>☀️ Terang</option></select></div>'
+    +'<div class="ssec">Font</div>'
+    +'<div class="srow"><div><div class="slbl">Ukuran Font</div></div><select class="ssel" onchange="snack(\'✍️ Disimpan\')"><option>Kecil</option><option selected>Sedang</option><option>Besar</option></select></div>'
+    +'<div class="ssec">Balon Chat</div>'
+    +'<div class="srow"><div><div class="slbl">Gaya Balon</div></div><select class="ssel" onchange="snack(\'💬 Disimpan\')"><option selected>Bulat</option><option>Kotak</option><option>Modern</option></select></div>';
+}
+function setPrivasi(){
+  var p=sSettings.privasi;
+  return '<div class="ssec">Visibilitas</div>'+togR('Status Online','Tampilkan saat aktif','privasi','online',p.online)
+    +togR('Waktu Terakhir Aktif','Tampilkan kapan terakhir online','privasi','bacaTerakhir',p.bacaTerakhir)
+    +togR('Centang Biru ✓✓','Konfirmasi pesan dibaca','privasi','konfirmasi',p.konfirmasi)
+    +'<div class="ssec">Foto Profil</div>'
+    +'<div class="srow"><div><div class="slbl">Siapa bisa lihat foto</div></div><select class="ssel"><option selected>Semua</option><option>Kontak</option><option>Tidak Ada</option></select></div>'
+    +'<div class="ssec">Keamanan</div>'
+    +'<div class="srow"><div><div class="slbl">Enkripsi E2E</div><div class="ssub" style="color:var(--green)">✅ Aktif</div></div></div>'
+    +'<div class="srow"><div><div class="slbl">Kontak Diblokir</div><div class="ssub">0 kontak</div></div><button class="sbtn2">Kelola</button></div>';
+}
+function setData(){
+  var d=sSettings.data;
+  return '<div class="ssec">Penggunaan Data</div>'
+    +'<div class="srow"><div class="slbl">Total Terpakai</div><div style="font-weight:700;color:var(--green)">24.3 MB</div></div>'
+    +'<div class="srow"><div class="slbl">Foto & Video</div><div style="font-size:.83rem;color:var(--tx2)">18.1 MB</div></div>'
+    +'<div class="ssec">Download</div>'+togR('Download Foto Otomatis','Simpan foto yang masuk','data','autoDownload',d.autoDownload)
+    +'<div class="srow"><div><div class="slbl">Kualitas Upload</div></div><select class="ssel"><option>Hemat</option><option selected>Standar</option><option>Tinggi</option></select></div>'
+    +'<div class="ssec">Backup</div>'+togR('Backup Otomatis','Simpan pesan ke cloud','data','backupOtomatis',d.backupOtomatis)
+    +'<div class="srow"><div><div class="slbl">Backup Terakhir</div><div class="ssub">Belum pernah</div></div><button class="sbtn2" onclick="snack(\'☁️ Dimulai...\')">Backup</button></div>'
+    +'<div class="ssec">Bersihkan</div>'
+    +'<button class="sbtn2 red" style="width:100%" onclick="if(confirm(\'Hapus cache?\'))snack(\'🧹 Dibersihkan\')">🧹 Bersihkan Cache</button>';
+}
+function setTentang(){
+  return '<div style="text-align:center;padding:16px 0">'
+    +'<div style="width:64px;height:64px;background:linear-gradient(135deg,var(--green),var(--acc));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;margin:0 auto 10px">🌐</div>'
+    +'<div style="font-size:1.15rem;font-weight:800">ChatWorld</div>'
+    +'<div style="font-size:.76rem;color:var(--green);margin-top:2px">Versi 1.0.0 Beta</div>'
+    +'<div style="font-size:.74rem;color:var(--tx3);margin-top:5px">Hubungkan dunia dalam satu aplikasi</div></div>'
+    +'<div class="ssec">Info</div>'
+    +'<div class="srow"><div class="slbl">Versi</div><div style="font-size:.83rem;color:var(--tx2)">1.0.0 Beta</div></div>'
+    +'<div class="srow"><div class="slbl">Platform</div><div style="font-size:.83rem;color:var(--tx2)">Web HTML5</div></div>'
+    +'<div class="srow"><div class="slbl">50+ Negara</div><div style="font-size:.83rem;color:var(--tx2)">Didukung</div></div>'
+    +'<div class="srow"><div class="slbl">Enkripsi</div><div style="font-size:.83rem;color:var(--green)">E2E ✅</div></div>'
+    +'<div class="ssec">Kontak & Legal</div>'
+    +'<div class="srow"><div><div class="slbl">Laporkan Masalah</div><div class="ssub">raxmboy01@gmail.com</div></div><button class="sbtn2" onclick="laporMasalah()">📧 Kirim</button></div>'
+    +'<div class="srow"><div class="slbl">Kebijakan Privasi</div><button class="sbtn2">Baca</button></div>'
+    +'<div class="srow"><div class="slbl">Ketentuan Layanan</div><button class="sbtn2">Baca</button></div>'
+    +'<div style="text-align:center;margin-top:18px;font-size:.7rem;color:var(--tx3)">© 2025 ChatWorld · Dibuat dengan ❤️</div>';
+}
+function togR(lbl,sub,key,prop,val){
+  return '<div class="srow"><div><div class="slbl">'+lbl+'</div><div class="ssub">'+sub+'</div></div>'
+    +'<button class="stog '+(val?'on':'')+'" onclick="togSet(\''+key+'\',\''+prop+'\',this)"></button></div>';
+}
+function togSet(key,prop,btn){sSettings[key][prop]=!sSettings[key][prop];btn.classList.toggle('on',sSettings[key][prop]);snack(sSettings[key][prop]?'✅ Aktif':'❌ Nonaktif');}
+function gantiTema(t){
+  sSettings.tampilan.tema=t;
+  if(t==='terang'){
+    document.documentElement.style.setProperty('--bg','#f0f2f5');
+    document.documentElement.style.setProperty('--s1','#ffffff');
+    document.documentElement.style.setProperty('--s2','#e8eaed');
+    document.documentElement.style.setProperty('--s3','#d0d3d8');
+    document.documentElement.style.setProperty('--tx','#111827');
+    document.documentElement.style.setProperty('--tx2','#374151');
+    document.documentElement.style.setProperty('--tx3','#6b7280');
+    document.documentElement.style.setProperty('--br','rgba(0,0,0,0.1)');
+  } else {
+    document.documentElement.style.setProperty('--bg','#0f1117');
+    document.documentElement.style.setProperty('--s1','#1a1d27');
+    document.documentElement.style.setProperty('--s2','#22263a');
+    document.documentElement.style.setProperty('--s3','#2c3148');
+    document.documentElement.style.setProperty('--tx','#f0f2ff');
+    document.documentElement.style.setProperty('--tx2','#9ba4c0');
+    document.documentElement.style.setProperty('--tx3','#6b7491');
+    document.documentElement.style.setProperty('--br','rgba(255,255,255,0.07)');
+  }
+  snack(t==='terang'?'☀️ Tema Terang':'🌙 Tema Gelap');
+}
+function pilihCov(i){
+  userProfile.cover=COVERS[i];
+  document.querySelectorAll('.covopt').forEach(function(el,j){el.classList.toggle('sel',j===i);});
+  snack('🖼️ Latar dipilih');
+}
+function pilihAksen(c){
+  userProfile.aksen=c;
+  document.documentElement.style.setProperty('--green',c);
+  document.querySelectorAll('.cdot').forEach(function(el){el.classList.toggle('sel',el.style.background===c);});
+  snack('🎨 Aksen diubah');
+}
+function uploadFotoProfil(inp){
+  if(!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){userProfile.fotoUrl=e.target.result;snack('✅ Foto profil diperbarui');switchST(0);};
+  r.readAsDataURL(inp.files[0]);inp.value='';
+}
+function simpanProfil(){
+  var nama=document.getElementById('eNama').value.trim();
+  var bio=document.getElementById('eBio').value.trim();
+  var web=document.getElementById('eWeb').value.trim();
+  if(!nama){snack('⚠️ Nama tidak boleh kosong');return;}
+  userProfile.bio=bio;userProfile.website=web;
+  if(currentUser){currentUser.nama=nama;}
+  var av=document.getElementById('userAvatar');
+  if(userProfile.fotoUrl) av.innerHTML='<img src="'+userProfile.fotoUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+  else av.textContent=nama[0].toUpperCase();
+  snack('✅ Profil disimpan!');
+}
+
+// ===== PROFILE CARD =====
+function openProfile(){
+  var u=currentUser||{nama:'-',telepon:'-'};
+  var p=userProfile;
+  document.getElementById('profCover').style.background=p.cover;
+  var pa=document.getElementById('profAv');
+  pa.style.background=p.cover;
+  pa.innerHTML=p.fotoUrl?'<img src="'+p.fotoUrl+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">':(u.nama||'U')[0].toUpperCase();
+  document.getElementById('profNm').textContent=u.nama||'-';
+  document.getElementById('profBio').textContent=p.bio||'';
+  var we=document.getElementById('profWeb');
+  if(p.website){var url=p.website.startsWith('http')?p.website:'https://'+p.website;we.innerHTML='🌐 <a href="'+url+'" target="_blank" style="color:var(--green);text-decoration:none">'+p.website+'</a>';}
+  else we.innerHTML='';
+  document.getElementById('profPh').textContent=u.telepon?'📞 '+u.telepon:'';
+  document.getElementById('profOv').classList.add('open');
+}
+function closeProfil(){document.getElementById('profOv').classList.remove('open');}
+
+// ===== LAPOR MASALAH =====
+function laporMasalah(){
+  var subj=encodeURIComponent('Laporan Masalah ChatWorld');
+  var body=encodeURIComponent('Halo Tim ChatWorld,\n\nSaya ingin melaporkan masalah berikut:\n\n[Tulis masalah di sini]\n\nTerima kasih.');
+  window.open('mailto:raxmboy01@gmail.com?subject='+subj+'&body='+body,'_blank');
+  snack('📧 Membuka email laporan...');
+}
+
+// ===== SNACK =====
+function snack(msg){
+  var el=document.getElementById('snk');el.textContent=msg;el.style.display='block';
+  clearTimeout(window._st);window._st=setTimeout(function(){el.style.display='none';},3000);
+}
+
+// Close overlays on bg click
+document.querySelectorAll('.ov').forEach(function(el){
+  el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});
+});
+</script>
+</body>
+</html>
